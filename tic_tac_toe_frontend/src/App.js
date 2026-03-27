@@ -1,47 +1,59 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
+import React from 'react';
 import './App.css';
 
 // PUBLIC_INTERFACE
 function App() {
-  const [theme, setTheme] = useState('light');
-
-  // Effect to apply theme to document element
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
-
-  // PUBLIC_INTERFACE
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
+  /** Step 01.01: layout + theme tokens. Game logic will be added in later steps. */
+  const squares = Array.from({ length: 9 }, () => '');
 
   return (
     <div className="App">
-      <header className="App-header">
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        >
-          {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-        </button>
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <p>
-          Current theme: <strong>{theme}</strong>
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <main className="app-shell">
+        <section className="app-title" aria-label="Tic Tac Toe title">
+          <h1>Tic-Tac-Toe</h1>
+          <p>Two-player local game • Modern light theme</p>
+        </section>
+
+        <section className="card" aria-label="Game area">
+          <div className="card-inner">
+            <div className="status-row" aria-label="Turn and score indicators">
+              <span className="badge">
+                Turn: <strong>X</strong>
+              </span>
+
+              <span className="badge badge-accent" aria-label="Score (placeholder)">
+                Score • X: 0 • O: 0
+              </span>
+            </div>
+
+            <div className="board" aria-label="Game board">
+              <div className="board-grid" role="grid" aria-label="3 by 3 board">
+                {squares.map((value, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className="square"
+                    aria-label={`Square ${idx + 1}`}
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <p className="helper">First to get 3 in a row wins.</p>
+
+            <div className="controls" aria-label="Game controls">
+              <button type="button" className="btn btn-primary">
+                New game
+              </button>
+              <button type="button" className="btn">
+                Reset score
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
