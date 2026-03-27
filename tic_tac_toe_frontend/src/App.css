@@ -137,6 +137,19 @@
   box-shadow: 0 6px 16px rgba(17, 24, 39, 0.10);
 }
 
+.square:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+  transform: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.square:disabled:hover {
+  transform: none;
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
 .square:active {
   transform: translateY(0);
 }
@@ -159,6 +172,11 @@
 .square-win {
   background: linear-gradient(180deg, rgba(6, 182, 212, 0.12), rgba(59, 130, 246, 0.10));
   border-color: rgba(6, 182, 212, 0.45);
+}
+
+.square-win:disabled {
+  /* Keep win highlight prominent even when the game has ended */
+  opacity: 1;
 }
 
 /* Controls */

@@ -182,15 +182,23 @@ function App() {
                   const playerClass =
                     value === PLAYER_X ? 'square-x' : value === PLAYER_O ? 'square-o' : '';
                   const winClass = isWinSquare ? 'square-win' : '';
+                  const rowIndex = Math.floor(idx / 3);
+                  const colIndex = idx % 3;
+                  const isGameOver = Boolean(winnerInfo) || draw;
+                  const isDisabled = isGameOver || value !== EMPTY;
+                  const squareLabel = `Row ${rowIndex + 1}, Column ${colIndex + 1}${
+                    value ? `: ${value}` : ''
+                  }`;
 
                   return (
                     <button
                       key={idx}
                       type="button"
                       className={['square', playerClass, winClass].filter(Boolean).join(' ')}
-                      aria-label={`Square ${idx + 1}${value ? `: ${value}` : ''}`}
+                      role="gridcell"
+                      aria-label={squareLabel}
                       onClick={() => handleSquareClick(idx)}
-                      disabled={Boolean(winnerInfo) || draw || value !== EMPTY}
+                      disabled={isDisabled}
                     >
                       {value}
                     </button>
@@ -199,7 +207,7 @@ function App() {
               </div>
             </div>
 
-            <p className="helper" aria-label="Game status helper">
+            <p className="helper" aria-label="Game status helper" aria-live="polite">
               {statusText}. First to get 3 in a row wins.
             </p>
 
