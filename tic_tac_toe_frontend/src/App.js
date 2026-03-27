@@ -88,6 +88,25 @@ function getNextPlayer(currentPlayer) {
 }
 
 // PUBLIC_INTERFACE
+function createEmptyBoard() {
+  /** Create a fresh empty board. */
+  return Array.from({ length: 9 }, () => EMPTY);
+}
+
+// PUBLIC_INTERFACE
+function createInitialScores() {
+  /**
+   * Create the initial score object.
+   *
+   * Contract:
+   * - winsX: number of games won by X
+   * - winsO: number of games won by O
+   * - draws: number of drawn games
+   */
+  return { winsX: 0, winsO: 0, draws: 0 };
+}
+
+// PUBLIC_INTERFACE
 function App() {
   /**
    * Step 01.02: core game logic (board + turn + win/draw + winning-line computation).
@@ -99,8 +118,10 @@ function App() {
    * Side effects:
    * - None outside React state updates.
    */
-  const [board, setBoard] = useState(() => Array.from({ length: 9 }, () => EMPTY));
+  const [board, setBoard] = useState(() => createEmptyBoard());
   const [currentPlayer, setCurrentPlayer] = useState(PLAYER_X);
+  const [scores, setScores] = useState(() => createInitialScores());
+  const [lastCountedOutcome, setLastCountedOutcome] = useState(null);
 
   const winnerInfo = useMemo(() => computeWinner(board), [board]);
   const winningLineSet = useMemo(() => {
@@ -109,12 +130,60 @@ function App() {
   }, [winnerInfo]);
 
   const draw = useMemo(() => isDraw(board), [board]);
+  const isGameOver = Boolean(winnerInfo) || draw;
+
+  /**
+   * Step 01.04: New game + score flow.
+   *
+   * Flow name: NewGameAndScoreFlow
+   * Entrypoints:
+   * - beginNewGame(): clears the board and resets turn to X (scores unchanged)
+   * - resetScores(): clears the score counters (board unchanged)
+   *
+   * Score counting contract:
+   * - We increment scores exactly once per finished game.
+   * - We do it deterministically at the boundary where a terminal state is first observed
+   *   (winnerInfo/draw) and guard against double-counting via lastCountedOutcome.
+   *
+   * Failure modes:
+   * - None expected in normal UI usage; relies on computeWinner/isDraw invariants.
+   */
+  const outcomeKey = useMemo(() => {
+    if (winnerInfo?.winner) return `W:${winnerInfo.winner}`;
+    if (draw) return 'D';
+    return null;
+  }, [draw, winnerInfo]);
 
   const statusText = useMemo(() => {
     if (winnerInfo?.winner) return `Winner: ${winnerInfo.winner}`;
     if (draw) return 'Draw game';
     return `Turn: ${currentPlayer}`;
   }, [currentPlayer, draw, winnerInfo]);
+
+  // PUBLIC_INTERFACE
+  function beginNewGame() {
+    /**
+     * Reset the board/turn for a new round.
+     *
+     * Side effects:
+     * - Updates React state: board, currentPlayer
+     * - Does NOT modify scores
+     */
+    setBoard(createEmptyBoard());
+    setCurrentPlayer(PLAYER_X);
+    setLastCountedOutcome(null);
+  }
+
+  // PUBLIC_INTERFACE
+  function resetScores() {
+    /**
+     * Reset the score counters.
+     *
+     * Side effects:
+     * - Updates React state: scores
+     */
+    setScores(createInitialScores());
+  }
 
   // PUBLIC_INTERFACE
   function handleSquareClick(index) {
@@ -141,6 +210,17 @@ function App() {
     });
 
     setCurrentPlayer((prev) => getNextPlayer(prev));
+  }
+
+  // Score update boundary: count a completed game exactly once.
+  if (outcomeKey && outcomeKey !== lastCountedOutcome) {
+    setLastCountedOutcome(outcomeKey);
+    setScores((prev) => {
+      if (outcomeKey === 'D') return { ...prev, draws: prev.draws + 1 };
+      if (outcomeKey === `W:${PLAYER_X}`) return { ...prev, winsX: prev.winsX + 1 };
+      if (outcomeKey === `W:${PLAYER_O}`) return { ...prev, winsO: prev.winsO + 1 };
+      return prev;
+    });
   }
 
   return (
@@ -170,9 +250,17 @@ function App() {
                 )}
               </span>
 
-              <span className="badge badge-accent" aria-label="Score (placeholder)">
-                Score • X: 0 • O: 0
-              </span>
+              <div className="score-badge" aria-label="Scoreboard">
+                <span className="score-pill" aria-label={`X wins: ${scores.winsX}`}>
+                  X: <strong>{scores.winsX}</strong>
+                </span>
+                <span className="score-pill score-pill-accent" aria-label={`O wins: ${scores.winsO}`}>
+                  O: <strong>{scores.winsO}</strong>
+                </span>
+                <span className="score-pill score-pill-muted" aria-label={`Draws: ${scores.draws}`}>
+                  Draws: <strong>{scores.draws}</strong>
+                </span>
+              </div>
             </div>
 
             <div className="board" aria-label="Game board">
@@ -184,7 +272,6 @@ function App() {
                   const winClass = isWinSquare ? 'square-win' : '';
                   const rowIndex = Math.floor(idx / 3);
                   const colIndex = idx % 3;
-                  const isGameOver = Boolean(winnerInfo) || draw;
                   const isDisabled = isGameOver || value !== EMPTY;
                   const squareLabel = `Row ${rowIndex + 1}, Column ${colIndex + 1}${
                     value ? `: ${value}` : ''
@@ -215,15 +302,12 @@ function App() {
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={() => {
-                  setBoard(Array.from({ length: 9 }, () => EMPTY));
-                  setCurrentPlayer(PLAYER_X);
-                }}
+                onClick={beginNewGame}
               >
                 New game
               </button>
-              <button type="button" className="btn" disabled>
-                Reset score
+              <button type="button" className="btn" onClick={resetScores} aria-label="Reset scores">
+                Reset scores
               </button>
             </div>
           </div>

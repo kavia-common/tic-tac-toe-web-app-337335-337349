@@ -96,6 +96,38 @@
   border: 1px solid rgba(6, 182, 212, 0.20);
 }
 
+/* Scoreboard */
+.score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.score-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(59, 130, 246, 0.20);
+  background: rgba(59, 130, 246, 0.10);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.score-pill-accent {
+  border: 1px solid rgba(6, 182, 212, 0.20);
+  background: rgba(6, 182, 212, 0.10);
+}
+
+.score-pill-muted {
+  border: 1px solid rgba(100, 116, 139, 0.22);
+  background: rgba(100, 116, 139, 0.10);
+}
+
 /* Board */
 .board {
   width: 100%;
